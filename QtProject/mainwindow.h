@@ -2,21 +2,34 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
+#include <QSqlDatabase>
+#include <QString>
 
-namespace Ui {
-class MainWindow;
+namespace Ui
+{
+    class MainWindow;
 }
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
-public:
-    explicit MainWindow(QWidget *parent = 0);
-    ~MainWindow();
+    public:
+        explicit MainWindow(QWidget *parent = 0);
+        ~MainWindow();
 
-private:
-    Ui::MainWindow *ui;
+        //void setDatabase(QSqlDatabase database);
+        QString queryPlayerName();
+
+
+    private:
+        QString accentColor;
+        Ui::MainWindow *ui;
+        QSqlDatabase db;       //Addresses (pointers) are never null, so don't try to initialize them to NULL.
+        QString pName;
+        void connectSignalsSlots();
+
+        Q_SLOT void updatePInvTableView(int itemType);
 };
 
 #endif // MAINWINDOW_H
