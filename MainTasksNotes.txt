@@ -1,0 +1,49 @@
+10/2/16 - 10/4/16
+Notes on the main user tasks:  changing equipped items, dropping items, using items, buying/selling items
+
+_______________________________________________________
+*Changing currently equipped items*
+- Adding bodyRegion attribute to EQUIPPED, WEAPON, and ARMOR.
+	- Make (playerName, bodyRegion) a UNIQUE tuple?	
+	
+- Use triggers for integrity constraints?  
+	- Check that bodyRegion equals one of 'head', 'torso', 'wrists', 'leftHand', 'rightHand', 'bothHands', 'legs', 'feet'.
+	- Check that itemType matches appropriate bodyRegion.  
+		- WEAPON bodyRegion values are only 'leftHand', 'rightHand', or 'twoHands'.**
+		- ARMOR bodyRegion values are only 'head', 'torso', 'wrists', 'leftHand', 'rightHand', 'legs', or 'feet'.**
+		
+		- **(Right now, a WEAPON or ARMOR item can belong to only one hand or the other, not either or...  So maybe DO NOT give WEAPON and ARMOR the bodyRegion attrib.  Might be too much info at that level.  Leave it to EQUIPPED.)
+		
+- Disallow equipping single-handed items if both hands are occupied.
+		
+- Check if there's already an item equipped to the desired bodyRegion.  If so, drop it before inserting the new tuple.
+
+- The OWNED table should not change at all when user changes equipped items, only the EQUIPPED table.
+
+_______________________________________________________
+*Dropping items*
+
+
+	
+	- Use triggers for updating tables appropriately when EQUIPPED is changed.
+		- If in table, update PLAYER's total weight carried.
+
+	- Use cascading to drop the item from the EQUIPPED table in addition to the OWNED table, if user is dropping a currently equipped item.
+
+
+
+_______________________________________________________
+*Using items*
+
+
+
+
+
+
+_______________________________________________________
+*Buying/selling items*
+
+
+
+
+
