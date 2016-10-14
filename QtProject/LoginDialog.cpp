@@ -3,24 +3,12 @@
 #include <QSqlDatabase>
 #include <QDebug>
 
+//THIS DIALOG HANDLES QSqlDatabase CREATION AND CONNECTION.
 //--------------------------------------
 LoginDialog::LoginDialog(QWidget *parent) : QDialog(parent)
 {
     mainWin = parent;
     pwdLineEdit->setEchoMode(QLineEdit::Password);
-
-    QHBoxLayout *serverLayout = new QHBoxLayout();
-    QHBoxLayout *dbLayout = new QHBoxLayout();
-    QHBoxLayout *userLayout = new QHBoxLayout();
-    QHBoxLayout *pwdLayout = new QHBoxLayout();
-    QLabel *serverLabel = new QLabel("Server Name:");
-    QLabel *dbLabel = new QLabel("Database Name:");
-    QLabel *userLabel = new QLabel("Username:");
-    QLabel *pwdLabel = new QLabel("Password:");
-    QLineEdit *serverLineEdit = new QLineEdit();
-    QLineEdit *dbLineEdit = new QLineEdit();
-    QLineEdit *userLineEdit = new QLineEdit();
-    QLineEdit *pwdLineEdit = new QLineEdit();
 
     serverLayout->addWidget(serverLabel);
     serverLayout->addWidget(serverLineEdit);
@@ -55,7 +43,6 @@ LoginDialog::~LoginDialog()
     //Do I need to manually destroy anything?
 }
 
-
 //--------------------------------------
 void LoginDialog::updateServerText(QString text)
 { serverText = text; }
@@ -83,9 +70,7 @@ void LoginDialog::setupDatabase()
     }
 
     else
-    {
-        qDebug() << "Try logging in again.";
-    }
+    { qDebug() << "Try logging in again."; }
 }
 
 
