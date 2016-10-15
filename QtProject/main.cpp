@@ -19,7 +19,6 @@ int main(int argc, char *argv[])
 
     QApplication app(argc, argv);
     MainWindow *win = new MainWindow();
-
     LoginDialog *dia = new LoginDialog(win);            //Needs to be a pointer, else compiler yells at me.
 
     return app.exec();

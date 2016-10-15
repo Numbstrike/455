@@ -17,7 +17,10 @@ class MainWindow : public QMainWindow
     public:
         explicit MainWindow(QWidget *parent = 0);
         ~MainWindow();
-        Q_SLOT void updatePInvTableView(int itemType);
+
+        void setDatabase(QSqlDatabase database);
+        QString queryPlayerName();
+
 
     private:
         QString accentColor;
@@ -25,6 +28,8 @@ class MainWindow : public QMainWindow
         QSqlDatabase db;       //Addresses (pointers) are never null, so don't try to initialize them to NULL.
         QString pName;
         void connectSignalsSlots();
+
+        Q_SLOT void updatePInvTableView(int itemType);
 };
 
 #endif // MAINWINDOW_H

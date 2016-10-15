@@ -13,13 +13,12 @@ TEMPLATE = app
 
 
 SOURCES += main.cpp\
-        LoginDialog.cpp \
         mainwindow.cpp
 
-HEADERS  += LoginDialog.h \
-    mainwindow.h
+HEADERS  += mainwindow.h
 
 FORMS    += mainwindow.ui
+
 
 
 macx: {

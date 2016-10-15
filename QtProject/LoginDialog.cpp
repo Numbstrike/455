@@ -1,4 +1,5 @@
 #include "LoginDialog.h"
+#include "MainWindow.h"
 #include <QDialog>
 #include <QSqlDatabase>
 #include <QDebug>
@@ -66,6 +67,8 @@ void LoginDialog::setupDatabase()
     if (tryOpenDatabase())
     {
         this->close();
+        MainWindow *win = dynamic_cast<MainWindow*> (mainWin);  //Typecast mainWin, a QWidget pointer, as win, a MainWindow pointer.
+        win->updatePInvTableView(0);
         mainWin->show();
     }
 
@@ -93,5 +96,6 @@ bool LoginDialog::tryOpenDatabase()
      }
 
      qDebug() << "Database opened okay.";
+     qDebug() << db.connectionName();
      return true;
 }
