@@ -87,9 +87,21 @@
             </item>
             <item>
              <widget class="QProgressBar" name="healthProgBar">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>350</width>
+                <height>0</height>
+               </size>
+              </property>
               <property name="maximumSize">
                <size>
-                <width>500</width>
+                <width>750</width>
                 <height>16777215</height>
                </size>
               </property>
@@ -127,6 +139,24 @@
             </item>
             <item>
              <widget class="QProgressBar" name="staminaProgBar">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="minimumSize">
+               <size>
+                <width>350</width>
+                <height>0</height>
+               </size>
+              </property>
+              <property name="maximumSize">
+               <size>
+                <width>750</width>
+                <height>16777215</height>
+               </size>
+              </property>
               <property name="value">
                <number>24</number>
               </property>

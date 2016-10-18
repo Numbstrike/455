@@ -68,7 +68,7 @@ void LoginDialog::setupDatabase()
     {
         this->close();
         MainWindow *win = dynamic_cast<MainWindow*> (mainWin);  //Typecast mainWin, a QWidget pointer, as win, a MainWindow pointer.
-        win->updatePInvTableView(0);
+        win->updatePInvTViewByType(0);
         mainWin->show();
     }
 

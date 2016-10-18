@@ -17,7 +17,8 @@ class MainWindow : public QMainWindow
     public:
         explicit MainWindow(QWidget *parent = 0);
         ~MainWindow();
-        Q_SLOT void updatePInvTableView(int itemType);
+        Q_SLOT void updatePInvTViewByType(int itemType);
+        //Q_SLOT void showTableViewMenu(QModelIndex rowNum);
 
     private:
         QString accentColor;
