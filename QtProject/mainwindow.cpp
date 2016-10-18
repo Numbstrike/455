@@ -51,7 +51,7 @@ MainWindow::~MainWindow()
 //-------------------------------------------------------------
 void MainWindow::connectSignalsSlots()
 {
-    connect(ui->itemTypeComboBox_pInv, SIGNAL(currentIndexChanged(int)), this, SLOT(updatePInvTViewByType(int)));
+    connect(ui->itemKindComboBox_pInv, SIGNAL(currentIndexChanged(int)), this, SLOT(updatePInvTViewByType(int)));
     //connect(ui->mainInvTableView, SIGNAL(clicked(QModelIndex)), this, SLOT(showTableViewMenu(QModelIndex)));
 }
 
@@ -84,7 +84,7 @@ void MainWindow::connectSignalsSlots()
 
 
 //-------------------------------------------------------------
-void MainWindow::updatePInvTViewByType(int itemType)
+void MainWindow::updatePInvTViewByType(int itemKind)
 /* Finding player inventory by item type.  Each type might have a slightly different displayed table (attribute-wise). */
 {
     qDebug() << "MainWin::updatePInvTViewByType:  Current pName is" << pName;
@@ -98,43 +98,43 @@ void MainWindow::updatePInvTViewByType(int itemType)
 
     getWeapons.prepare(
                 "create temporary table OWNEDWEAPONS as "
-                "select  itemName, itemType, weight, quantity, weight*quantity as totalWeight, degradation*baseValue as value "
+                "select  itemName, itemKind, weight, quantity, weight*quantity as totalWeight, degradation*baseValue as value "
                 "from OWNED join ITEM join WEAPON on itemName=ITEM.name and ITEM.name=WEAPON.name "
-                "where playerName=:pName and itemType='weapon';");
+                "where playerName=:pName and itemKind='weapon';");
     getWeapons.bindValue(":pName", pName);
     getWeapons.exec();
 
     getArmor.prepare(
                 "create temporary table OWNEDARMOR as "
-                "select  itemName, itemType, weight, quantity, weight*quantity as totalWeight, degradation*baseValue as value "
+                "select  itemName, itemKind, weight, quantity, weight*quantity as totalWeight, degradation*baseValue as value "
                 "from OWNED join ITEM join ARMOR on itemName=ITEM.name and ITEM.name=ARMOR.name "
-                "where playerName=:pName and itemType='armor';");
+                "where playerName=:pName and itemKind='armor';");
     getArmor.bindValue(":pName", pName);
     getArmor.exec();
 
     getUsables.prepare(
                      "create temporary table OWNEDUSABLES as "
-                     "select itemName, itemType, weight, quantity, weight*quantity as totalWeight, baseValue as value "
+                     "select itemName, itemKind, weight, quantity, weight*quantity as totalWeight, baseValue as value "
                      "from OWNED join ITEM on itemName=name "
-                     "where playerName=:pName and itemType='usable';");
+                     "where playerName=:pName and itemKind='usable';");
     getUsables.bindValue(":pName", pName);
     getUsables.exec();
 
     getMisc.prepare(
                      "create temporary table OWNEDMISC as "
-                     "select itemName, itemType, weight, quantity, weight*quantity as totalWeight, baseValue as value "
+                     "select itemName, itemKind, weight, quantity, weight*quantity as totalWeight, baseValue as value "
                      "from OWNED join ITEM on itemName=name "
-                     "where playerName=:pName and itemType='misc';");
+                     "where playerName=:pName and itemKind='misc';");
 
     getMisc.bindValue(":pName", pName);
     getMisc.exec();
 
     //MAKE SURE TO HAVE SPACES, SO QUERY EXECUTES NORMALLY.
-    if (itemType == 0)
+    if (itemKind == 0)
     {
         qDebug() << "Displaying item type: ALL";
 
-//        getItems.prepare("select itemName, itemType, weight, quantity, weight*quantity as totalWeight, baseValue "
+//        getItems.prepare("select itemName, itemKind, weight, quantity, weight*quantity as totalWeight, baseValue "
 //                         "from OWNED join ITEM on itemName=name "
 //                         "where playerName=:pName;");
         getItems.prepare(
@@ -149,15 +149,15 @@ void MainWindow::updatePInvTViewByType(int itemType)
 
 
     //WEAPON Items: has degradation (affects value. Get from WEAPON table.)
-    else if (itemType == 1)
+    else if (itemKind == 1)
     {
         qDebug() << "Displaying item type: WEAPON";
         getItems.prepare("select * from OWNEDWEAPONS;");
 
 //         getItems.prepare(
-//                     "select  itemName, itemType, weight, quantity, weight*quantity as totalWeight, degradation*baseValue as value "
+//                     "select  itemName, itemKind, weight, quantity, weight*quantity as totalWeight, degradation*baseValue as value "
 //                     "from OWNED join ITEM join WEAPON on itemName=ITEM.name and ITEM.name=WEAPON.name "
-//                     "where playerName=:pName and itemType='weapon';");
+//                     "where playerName=:pName and itemKind='weapon';");
 
 //         getItems.bindValue(":pName", pName);
 //         getItems.exec();
@@ -173,15 +173,15 @@ void MainWindow::updatePInvTViewByType(int itemType)
 
 
     //ARMOR Items: has degradation
-    else if (itemType == 2)
+    else if (itemKind == 2)
     {
          qDebug() << "Displaying item type: ARMOR";
          getItems.prepare("select * from OWNEDARMOR;");
 
 //         getItems.prepare(
-//                     "select  itemName, itemType, weight, quantity, weight*quantity as totalWeight, degradation*baseValue as value "
+//                     "select  itemName, itemKind, weight, quantity, weight*quantity as totalWeight, degradation*baseValue as value "
 //                     "from OWNED join ITEM join ARMOR on itemName=ITEM.name and ITEM.name=ARMOR.name "
-//                     "where playerName=:pName and itemType='armor';");
+//                     "where playerName=:pName and itemKind='armor';");
 
 //         getItems.bindValue(":pName", pName);
 //         getItems.exec();
@@ -197,14 +197,14 @@ void MainWindow::updatePInvTViewByType(int itemType)
 
 
     //USABLE Items: No degradation
-    else if (itemType == 3)
+    else if (itemKind == 3)
     {
         qDebug() << "Displaying item type: USABLE";
         getItems.prepare("select * from OWNEDUSABLES;");
 
-//        getItems.prepare("select itemName, itemType, weight, quantity, weight*quantity as totalWeight, baseValue "
+//        getItems.prepare("select itemName, itemKind, weight, quantity, weight*quantity as totalWeight, baseValue "
 //                         "from OWNED join ITEM on itemName=name "
-//                         "where playerName=:pName and itemType='usable';");
+//                         "where playerName=:pName and itemKind='usable';");
 
 //        getItems.bindValue(":pName", pName);
 //        getItems.exec();
@@ -220,14 +220,14 @@ void MainWindow::updatePInvTViewByType(int itemType)
 
 
     //MISC Items: No degradation
-    else if (itemType == 4)
+    else if (itemKind == 4)
     {
         qDebug() << "Displaying item type: MISC";
         getItems.prepare("select * from OWNEDMISC;");
 
-//        getItems.prepare("select itemName, itemType, weight, quantity, weight*quantity as totalWeight, baseValue "
+//        getItems.prepare("select itemName, itemKind, weight, quantity, weight*quantity as totalWeight, baseValue "
 //                         "from OWNED join ITEM on itemName=name "
-//                         "where playerName=:pName and itemType='misc';");
+//                         "where playerName=:pName and itemKind='misc';");
 
 //        getItems.bindValue(":pName", pName);
 //        getItems.exec();
