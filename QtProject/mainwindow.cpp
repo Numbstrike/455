@@ -95,6 +95,7 @@ void MainWindow::updatePInvTViewByType(int itemKind)
     QSqlQuery getArmor;
     QSqlQuery getUsables;
     QSqlQuery getMisc;
+    QSqlQuery getAll;
 
     getWeapons.prepare(
                 "create temporary table OWNEDWEAPONS as "
@@ -129,22 +130,32 @@ void MainWindow::updatePInvTViewByType(int itemKind)
     getMisc.bindValue(":pName", pName);
     getMisc.exec();
 
+    getAll.prepare(
+                "create temporary table OWNEDALLITEMS as "
+                "select * from OWNEDWEAPONS "
+                "union "
+                "select * from OWNEDARMOR "
+                "union "
+                "select * from OWNEDUSABLES "
+                "union "
+                "select * from OWNEDMISC;");
+    getAll.exec();
+
     //MAKE SURE TO HAVE SPACES, SO QUERY EXECUTES NORMALLY.
     if (itemKind == 0)
     {
         qDebug() << "Displaying item type: ALL";
 
-//        getItems.prepare("select itemName, itemKind, weight, quantity, weight*quantity as totalWeight, baseValue "
-//                         "from OWNED join ITEM on itemName=name "
-//                         "where playerName=:pName;");
-        getItems.prepare(
-                    "select * from OWNEDWEAPONS "
-                    "union "
-                    "select * from OWNEDARMOR "
-                    "union "
-                    "select * from OWNEDUSABLES "
-                    "union "
-                    "select * from OWNEDMISC;");
+            getItems.prepare("select * from OWNEDALLITEMS;");
+
+//        getItems.prepare(
+//                    "select * from OWNEDWEAPONS "
+//                    "union "
+//                    "select * from OWNEDARMOR "
+//                    "union "
+//                    "select * from OWNEDUSABLES "
+//                    "union "
+//                    "select * from OWNEDMISC;");
      }
 
 
