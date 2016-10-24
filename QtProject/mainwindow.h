@@ -17,7 +17,7 @@ class MainWindow : public QMainWindow
     public:
         explicit MainWindow(QWidget *parent = 0);
         ~MainWindow();
-        Q_SLOT void updatePInvTViewByType(int itemType);
+        void startDisplays();
         //Q_SLOT void showTableViewMenu(QModelIndex rowNum);
 
     private:
@@ -25,7 +25,13 @@ class MainWindow : public QMainWindow
         Ui::MainWindow *ui;
         QSqlDatabase db;       //Addresses (pointers) are never null, so don't try to initialize them to NULL.
         QString pName;
+        QString npcName;
+        void setHealthStaminaBars();
         void connectSignalsSlots();
+        void createPlayerTempTables();
+        void createNpcTempTables();
+        Q_SLOT void updatePInvTViewByKind(int itemKind=0);
+        Q_SLOT void updateNpcInvTViewByKind(int itemKind=0);
 };
 
 #endif // MAINWINDOW_H

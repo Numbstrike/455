@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1185</width>
-    <height>589</height>
+    <width>1319</width>
+    <height>766</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="mainTabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="inventoryTab">
        <attribute name="title">
@@ -201,16 +201,16 @@
            </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="itemTypeHLayout">
+           <layout class="QHBoxLayout" name="itemKindHLayout">
             <item>
-             <widget class="QLabel" name="itemTypeLabel">
+             <widget class="QLabel" name="itemKindLabel">
               <property name="text">
                <string>Item Type:</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QComboBox" name="itemTypeComboBox_pInv">
+             <widget class="QComboBox" name="itemKindComboBox_pInv">
               <property name="currentText">
                <string>&lt;All Items&gt;</string>
               </property>
@@ -265,7 +265,7 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <widget class="QLabel" name="label_3">
+           <widget class="QLabel" name="pNameLabel_buySell">
             <property name="text">
              <string>&lt;user pName&gt;</string>
             </property>
@@ -286,14 +286,14 @@
            </widget>
           </item>
           <item>
-           <widget class="QTableView" name="tableView"/>
+           <widget class="QTableView" name="pInvTableView_buySell"/>
           </item>
          </layout>
         </item>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <widget class="QLabel" name="label_2">
+           <widget class="QLabel" name="npcNameLabel_buySell">
             <property name="text">
              <string>&lt;NPC pName&gt;</string>
             </property>
@@ -307,20 +307,7 @@
            </widget>
           </item>
           <item>
-           <spacer name="verticalSpacer_2">
-            <property name="orientation">
-             <enum>Qt::Vertical</enum>
-            </property>
-            <property name="sizeHint" stdset="0">
-             <size>
-              <width>20</width>
-              <height>40</height>
-             </size>
-            </property>
-           </spacer>
-          </item>
-          <item>
-           <widget class="QTableView" name="tableView_2"/>
+           <widget class="QTableView" name="npcInvTableView_buySell"/>
           </item>
          </layout>
         </item>

@@ -18,6 +18,7 @@ MainWindow::MainWindow(QWidget *parent) :
     this->setWindowTitle("RPG Inventory Manager");
 
     accentColor = "rgb(35,125,130)";
+
     QString grayGradient = "QLinearGradient(x1: 0, y1: 0, x2: 0, y2: 1, stop: 0 rgb(75,75,80), stop: 1 rgb(100, 110, 110))";
     QString accentGradient = "QLinearGradient(x1: 0, y1:0, x2: 0, y2: 1, stop: 0"+accentColor+", stop: 1 rgb(100,110,100))";
     setStyleSheet("QWidget{background-color: "+grayGradient+"; color: white; font: 12pt 'Arial';}"
@@ -33,11 +34,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //ui->staminaProgBar->setFormat("%p%"); //Grr, text not appearing on Mac. Okay on Windows?
 
-    pName = "Shady Old Man";
-    ui->playerNameLabel->setText("Player Name: "+pName);
+    npcName = "Shady Old Man";
+    pName = "Aragorn";
+
     connectSignalsSlots();
 }
-
 
 //-------------------------------------------------------------
 MainWindow::~MainWindow()
@@ -45,213 +46,90 @@ MainWindow::~MainWindow()
 {
     delete ui;
     QSqlDatabase::removeDatabase("qt_sql_default_connection");          //Destroy connection so can launch process again in the same QtCreator session.
-}                                                                       // (This was an issue on Mac.)
+                                                                        // (This was an issue on Mac.)
+    QSqlDatabase::removeDatabase("QMYSQL");
+}
 
+//-------------------------------------------------------------
+void MainWindow::startDisplays()
+/* Called from LoginDialog when database successfully connected. */
+{
+    ui->playerNameLabel->setText("Player Name: "+pName);
+    ui->pNameLabel_buySell->setText("Player Name: "+pName);
+    ui->npcNameLabel_buySell->setText("NPC Name: "+npcName);
+
+    setHealthStaminaBars();
+    updateNpcInvTViewByKind(0);
+    updatePInvTViewByKind(0);
+}
+
+//-------------------------------------------------------------
+void MainWindow::setHealthStaminaBars()
+{
+    int h;
+    int s;
+    QSqlQuery query;
+    query.prepare("select health, stamina from healthStaminaView where name=:pName;");
+    query.bindValue(":pName", pName);
+    query.exec();
+
+    while (query.next())
+    {
+         h = query.value(0).toInt();            // .value() returns attrib. name at the given index.
+         s = query.value(1).toInt();
+    }
+
+    ui->healthProgBar->setValue(h);
+    ui->staminaProgBar->setValue(s);
+}
 
 //-------------------------------------------------------------
 void MainWindow::connectSignalsSlots()
 {
-    connect(ui->itemKindComboBox_pInv, SIGNAL(currentIndexChanged(int)), this, SLOT(updatePInvTViewByType(int)));
+    connect(ui->itemKindComboBox_pInv, SIGNAL(currentIndexChanged(int)), this, SLOT(updatePInvTViewByKind(int)));
+    connect(ui->mainTabWidget, SIGNAL(tabBarClicked(int)), this, SLOT(updatePInvTViewByKind()));
     //connect(ui->mainInvTableView, SIGNAL(clicked(QModelIndex)), this, SLOT(showTableViewMenu(QModelIndex)));
 }
 
-
 //-------------------------------------------------------------
-//QString MainWindow::queryPlayerName()
-///* Retrieves current player name from DB.
-//    Practice with QSql for now, since this is probably not logical to do. */
-//{
-//    pName = "Pooky the Bear";
-
-//    QString name;
-
-//        QSqlQuery getPlayerName;                                                    //Do queries by default use the currently opened DB? I think so.
-//        getPlayerName.prepare("select name from PLAYER where name=:pName;");
-//        getPlayerName.bindValue(":pName", "Pooky the Bear");
-
-//        if (getPlayerName.exec())
-//        {
-//            qDebug() << "MainWin::queryPlayerName: Player name retrieved:" << name;
-//            ui->playerNameLabel->setText("Player Name: "+name);
-//            //pName = name;                                             //Update class variable.
-//            updatePInvTViewByType(0);                            // Show all of player's items by default.
-//        }
-//        else
-//        { qDebug() << "Error. Player name not retrieved."; }
-
-//    return name;
-//}
-
-
-//-------------------------------------------------------------
-void MainWindow::updatePInvTViewByType(int itemKind)
+void MainWindow::updatePInvTViewByKind(int itemKind)
 /* Finding player inventory by item type.  Each type might have a slightly different displayed table (attribute-wise). */
 {
     qDebug() << "MainWin::updatePInvTViewByType:  Current pName is" << pName;
     QSqlQuery getItems;
     QSqlQueryModel *mainInvQueryModel = new QSqlQueryModel();      //QSqlQueryModel for DISPLAYING data, not for editing, unlike QSqlTableModel.
-
-    QSqlQuery getWeapons;
-    QSqlQuery getArmor;
-    QSqlQuery getUsables;
-    QSqlQuery getMisc;
-    QSqlQuery getAll;
-
-    getWeapons.prepare(
-                "create temporary table OWNEDWEAPONS as "
-                "select  itemName, itemKind, weight, quantity, weight*quantity as totalWeight, degradation*baseValue as value "
-                "from OWNED join ITEM join WEAPON on itemName=ITEM.name and ITEM.name=WEAPON.name "
-                "where playerName=:pName and itemKind='weapon';");
-    getWeapons.bindValue(":pName", pName);
-    getWeapons.exec();
-
-    getArmor.prepare(
-                "create temporary table OWNEDARMOR as "
-                "select  itemName, itemKind, weight, quantity, weight*quantity as totalWeight, degradation*baseValue as value "
-                "from OWNED join ITEM join ARMOR on itemName=ITEM.name and ITEM.name=ARMOR.name "
-                "where playerName=:pName and itemKind='armor';");
-    getArmor.bindValue(":pName", pName);
-    getArmor.exec();
-
-    getUsables.prepare(
-                     "create temporary table OWNEDUSABLES as "
-                     "select itemName, itemKind, weight, quantity, weight*quantity as totalWeight, baseValue as value "
-                     "from OWNED join ITEM on itemName=name "
-                     "where playerName=:pName and itemKind='usable';");
-    getUsables.bindValue(":pName", pName);
-    getUsables.exec();
-
-    getMisc.prepare(
-                     "create temporary table OWNEDMISC as "
-                     "select itemName, itemKind, weight, quantity, weight*quantity as totalWeight, baseValue as value "
-                     "from OWNED join ITEM on itemName=name "
-                     "where playerName=:pName and itemKind='misc';");
-
-    getMisc.bindValue(":pName", pName);
-    getMisc.exec();
-
-    getAll.prepare(
-                "create temporary table OWNEDALLITEMS as "
-                "select * from OWNEDWEAPONS "
-                "union "
-                "select * from OWNEDARMOR "
-                "union "
-                "select * from OWNEDUSABLES "
-                "union "
-                "select * from OWNEDMISC;");
-    getAll.exec();
+    createPlayerTempTables();
 
     //MAKE SURE TO HAVE SPACES, SO QUERY EXECUTES NORMALLY.
     if (itemKind == 0)
     {
         qDebug() << "Displaying item type: ALL";
-
-            getItems.prepare("select * from OWNEDALLITEMS;");
-
-//        getItems.prepare(
-//                    "select * from OWNEDWEAPONS "
-//                    "union "
-//                    "select * from OWNEDARMOR "
-//                    "union "
-//                    "select * from OWNEDUSABLES "
-//                    "union "
-//                    "select * from OWNEDMISC;");
+        getItems.prepare("select * from P_OWNEDALLITEMS;");
      }
 
-
-    //WEAPON Items: has degradation (affects value. Get from WEAPON table.)
     else if (itemKind == 1)
     {
         qDebug() << "Displaying item type: WEAPON";
-        getItems.prepare("select * from OWNEDWEAPONS;");
-
-//         getItems.prepare(
-//                     "select  itemName, itemKind, weight, quantity, weight*quantity as totalWeight, degradation*baseValue as value "
-//                     "from OWNED join ITEM join WEAPON on itemName=ITEM.name and ITEM.name=WEAPON.name "
-//                     "where playerName=:pName and itemKind='weapon';");
-
-//         getItems.bindValue(":pName", pName);
-//         getItems.exec();
-
-//         mainInvQueryModel->setQuery(getItems);
-//         mainInvQueryModel->setHeaderData(0, Qt::Horizontal, "Item Name");
-//         mainInvQueryModel->setHeaderData(1, Qt::Horizontal, "Item Type");
-//         mainInvQueryModel->setHeaderData(2, Qt::Horizontal, "Quantity");
-//         mainInvQueryModel->setHeaderData(3, Qt::Horizontal, "Weight");
-//         mainInvQueryModel->setHeaderData(4, Qt::Horizontal, "Total Weight");
-//         mainInvQueryModel->setHeaderData(5, Qt::Horizontal, "Value");
+        getItems.prepare("select * from P_OWNEDWEAPONS;");
     }
 
-
-    //ARMOR Items: has degradation
     else if (itemKind == 2)
     {
          qDebug() << "Displaying item type: ARMOR";
-         getItems.prepare("select * from OWNEDARMOR;");
-
-//         getItems.prepare(
-//                     "select  itemName, itemKind, weight, quantity, weight*quantity as totalWeight, degradation*baseValue as value "
-//                     "from OWNED join ITEM join ARMOR on itemName=ITEM.name and ITEM.name=ARMOR.name "
-//                     "where playerName=:pName and itemKind='armor';");
-
-//         getItems.bindValue(":pName", pName);
-//         getItems.exec();
-
-//         mainInvQueryModel->setQuery(getItems);
-//         mainInvQueryModel->setHeaderData(0, Qt::Horizontal, "Item Name");
-//         mainInvQueryModel->setHeaderData(1, Qt::Horizontal, "Item Type");
-//         mainInvQueryModel->setHeaderData(2, Qt::Horizontal, "Quantity");
-//         mainInvQueryModel->setHeaderData(3, Qt::Horizontal, "Weight");
-//         mainInvQueryModel->setHeaderData(4, Qt::Horizontal, "Total Weight");
-//         mainInvQueryModel->setHeaderData(5, Qt::Horizontal, "Value");
+         getItems.prepare("select * from P_OWNEDARMOR;");
     }
 
-
-    //USABLE Items: No degradation
     else if (itemKind == 3)
     {
         qDebug() << "Displaying item type: USABLE";
-        getItems.prepare("select * from OWNEDUSABLES;");
-
-//        getItems.prepare("select itemName, itemKind, weight, quantity, weight*quantity as totalWeight, baseValue "
-//                         "from OWNED join ITEM on itemName=name "
-//                         "where playerName=:pName and itemKind='usable';");
-
-//        getItems.bindValue(":pName", pName);
-//        getItems.exec();
-
-//        mainInvQueryModel->setQuery(getItems);
-//        mainInvQueryModel->setHeaderData(0, Qt::Horizontal, "Item Name");
-//        mainInvQueryModel->setHeaderData(1, Qt::Horizontal, "Item Type");
-//        mainInvQueryModel->setHeaderData(2, Qt::Horizontal, "Quantity");
-//        mainInvQueryModel->setHeaderData(3, Qt::Horizontal, "Weight");
-//        mainInvQueryModel->setHeaderData(4, Qt::Horizontal, "Total Weight");
-//        mainInvQueryModel->setHeaderData(5, Qt::Horizontal, "Value");
+        getItems.prepare("select * from P_OWNEDUSABLES;");
     }
 
-
-    //MISC Items: No degradation
     else if (itemKind == 4)
     {
         qDebug() << "Displaying item type: MISC";
-        getItems.prepare("select * from OWNEDMISC;");
-
-//        getItems.prepare("select itemName, itemKind, weight, quantity, weight*quantity as totalWeight, baseValue "
-//                         "from OWNED join ITEM on itemName=name "
-//                         "where playerName=:pName and itemKind='misc';");
-
-//        getItems.bindValue(":pName", pName);
-//        getItems.exec();
-
-//        mainInvQueryModel->setQuery(getItems);
-//        mainInvQueryModel->setHeaderData(0, Qt::Horizontal, "Item Name");
-//        mainInvQueryModel->setHeaderData(1, Qt::Horizontal, "Item Type");
-//        mainInvQueryModel->setHeaderData(2, Qt::Horizontal, "Quantity");
-//        mainInvQueryModel->setHeaderData(3, Qt::Horizontal, "Weight");
-//        mainInvQueryModel->setHeaderData(4, Qt::Horizontal, "Total Weight");
-//        mainInvQueryModel->setHeaderData(5, Qt::Horizontal, "Value");
+        getItems.prepare("select * from P_OWNEDMISC;");
     }
-
 
     getItems.bindValue(":pName", pName);
     getItems.exec();
@@ -265,9 +143,79 @@ void MainWindow::updatePInvTViewByType(int itemKind)
     mainInvQueryModel->setHeaderData(5, Qt::Horizontal, "Value");
 
     ui->mainInvTableView->setModel(mainInvQueryModel);
-    ui->mainInvTableView->show();
+    ui->pInvTableView_buySell->setModel(mainInvQueryModel);
+    //ui->pInvTableView_buySell->show();
+    ui->mainInvTableView->show();               //Allows inv tab to be the default one viewed.
 }
 
+//-------------------------------------------------------------
+void MainWindow::updateNpcInvTViewByKind(int itemKind)
+{
+    qDebug() << "MainWin::updatePInvTViewByType:  Current npcName is" << npcName;
+    QSqlQuery getItems;
+    QSqlQueryModel *npcInvQueryModel = new QSqlQueryModel();      //QSqlQueryModel for DISPLAYING data, not for editing, unlike QSqlTableModel.
+    createNpcTempTables();
+
+    if (itemKind == 0)
+    {
+        qDebug() << "Displaying item type: ALL";
+        getItems.prepare("select * from NPC_OWNEDALLITEMS;");
+     }
+
+    else if (itemKind == 1)
+    {
+        qDebug() << "Displaying item type: WEAPON";
+        getItems.prepare("select * from NPC_OWNEDWEAPONS;");
+    }
+
+    else if (itemKind == 2)
+    {
+         qDebug() << "Displaying item type: ARMOR";
+         getItems.prepare("select * from NPC_OWNEDARMOR;");
+    }
+
+    else if (itemKind == 3)
+    {
+        qDebug() << "Displaying item type: USABLE";
+        getItems.prepare("select * from NPC_OWNEDUSABLES;");
+    }
+
+    else if (itemKind == 4)
+    {
+        qDebug() << "Displaying item type: MISC";
+        getItems.prepare("select * from NPC_OWNEDMISC;");
+    }
+
+    getItems.exec();
+
+    npcInvQueryModel->setQuery(getItems);
+    npcInvQueryModel->setHeaderData(0, Qt::Horizontal, "Item Name");
+    npcInvQueryModel->setHeaderData(1, Qt::Horizontal, "Item Type");
+    npcInvQueryModel->setHeaderData(2, Qt::Horizontal, "Quantity");
+    npcInvQueryModel->setHeaderData(3, Qt::Horizontal, "Weight");
+    npcInvQueryModel->setHeaderData(4, Qt::Horizontal, "Total Weight");
+    npcInvQueryModel->setHeaderData(5, Qt::Horizontal, "Value");
+
+    ui->npcInvTableView_buySell->setModel(npcInvQueryModel);
+}
+
+//-------------------------------------------------------------
+void MainWindow::createPlayerTempTables()
+{
+    QSqlQuery callTablesProc;
+    callTablesProc.prepare("call updatePlayerTempTables(:pName);");
+    callTablesProc.bindValue(":pName", pName);
+    callTablesProc.exec();
+}
+
+//-------------------------------------------------------------
+void MainWindow::createNpcTempTables()
+{
+    QSqlQuery callTablesProc;
+    callTablesProc.prepare("call updateNpcTempTables(:npcName);");
+    callTablesProc.bindValue(":npcName", npcName);
+    callTablesProc.exec();
+}
 
 //-------------------------------------------------------------
 //void MainWindow::showTableViewMenu(QModelIndex rowNum)
