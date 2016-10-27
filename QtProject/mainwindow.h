@@ -27,6 +27,7 @@ class MainWindow : public QMainWindow
         QString pName;
         QString npcName;
         void setHealthStaminaBars();
+        void setCoinsAndWeights();
         void connectSignalsSlots();
         void createPlayerTempTables();
         void createNpcTempTables();

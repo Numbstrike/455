@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="mainTabWidget">
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="inventoryTab">
        <attribute name="title">
@@ -28,37 +28,38 @@
         <item>
          <layout class="QVBoxLayout" name="playerInfoVLayout">
           <item>
-           <layout class="QHBoxLayout" name="playerNameHLayout">
-            <item>
-             <widget class="QLabel" name="playerNameLabel">
-              <property name="text">
-               <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Player Name: &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QLabel" name="playerNameLabel">
+            <property name="text">
+             <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Player Name: &lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+            </property>
+           </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="weightHLayout">
-            <item>
-             <widget class="QLabel" name="weightLabel">
-              <property name="text">
-               <string>Weight Carried: &lt;int&gt;</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QLabel" name="coinsLabel">
+            <property name="text">
+             <string>Coins: &lt;int&gt;</string>
+            </property>
+           </widget>
           </item>
           <item>
-           <layout class="QHBoxLayout" name="coinsHLayout">
-            <item>
-             <widget class="QLabel" name="coinsLabel">
-              <property name="text">
-               <string>Coins: &lt;int&gt;</string>
-              </property>
-             </widget>
-            </item>
-           </layout>
+           <widget class="QLabel" name="weightLabel">
+            <property name="text">
+             <string>Weight Carried: &lt;int&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <spacer name="verticalSpacer_2">
+            <property name="orientation">
+             <enum>Qt::Vertical</enum>
+            </property>
+            <property name="sizeHint" stdset="0">
+             <size>
+              <width>20</width>
+              <height>40</height>
+             </size>
+            </property>
+           </spacer>
           </item>
           <item>
            <layout class="QHBoxLayout" name="healthHLayout">
@@ -189,6 +190,16 @@
             </property>
            </spacer>
           </item>
+          <item>
+           <widget class="QLabel" name="equippedLabel">
+            <property name="text">
+             <string>Currently Equipped Items</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTableView" name="equippedTView"/>
+          </item>
          </layout>
         </item>
         <item>
@@ -244,6 +255,47 @@
            </layout>
           </item>
           <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_5">
+            <item>
+             <widget class="QLabel" name="label_2">
+              <property name="text">
+               <string>Item Selected: &lt;itemname&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <layout class="QVBoxLayout" name="verticalLayout_3">
+              <item>
+               <widget class="QLabel" name="label">
+                <property name="text">
+                 <string>Choose an Action:</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QComboBox" name="comboBox">
+                <item>
+                 <property name="text">
+                  <string>Drop Item</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Use Item</string>
+                 </property>
+                </item>
+                <item>
+                 <property name="text">
+                  <string>Equip Item</string>
+                 </property>
+                </item>
+               </widget>
+              </item>
+             </layout>
+            </item>
+           </layout>
+          </item>
+          <item>
            <widget class="QTableView" name="mainInvTableView">
             <property name="autoFillBackground">
              <bool>true</bool>
@@ -272,23 +324,75 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label">
+           <widget class="QLabel" name="pCoinsLabel_buySell">
             <property name="text">
              <string>Coins: &lt;int&gt;</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_5">
+           <widget class="QLabel" name="pWeightLabel_buySell">
             <property name="text">
              <string>Weight Carried: &lt;int&gt;</string>
             </property>
            </widget>
           </item>
           <item>
+           <widget class="Line" name="line">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout">
+            <item>
+             <widget class="QLabel" name="sellAmtLabel">
+              <property name="text">
+               <string>Item Selected: &lt;itemname&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_3">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="sellItemSelected">
+              <property name="text">
+               <string>Sell item for &lt;int&gt; coins?</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="sellPushButton">
+              <property name="text">
+               <string>Indeed!</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
+          </item>
+          <item>
            <widget class="QTableView" name="pInvTableView_buySell"/>
           </item>
          </layout>
+        </item>
+        <item>
+         <widget class="Line" name="line_3">
+          <property name="orientation">
+           <enum>Qt::Vertical</enum>
+          </property>
+         </widget>
         </item>
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -300,11 +404,63 @@
            </widget>
           </item>
           <item>
-           <widget class="QLabel" name="label_4">
+           <widget class="QLabel" name="npcCoinsLabel_buySell">
             <property name="text">
              <string>Coins: &lt;int&gt;</string>
             </property>
            </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="npcWeightLabel_buySell">
+            <property name="text">
+             <string>Weight Carried: &lt;int&gt;</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="Line" name="line_2">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <layout class="QHBoxLayout" name="horizontalLayout_4">
+            <item>
+             <widget class="QLabel" name="buyAmtLabel">
+              <property name="text">
+               <string>Item Selected: &lt;itemname&gt;</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <spacer name="horizontalSpacer_4">
+              <property name="orientation">
+               <enum>Qt::Horizontal</enum>
+              </property>
+              <property name="sizeHint" stdset="0">
+               <size>
+                <width>40</width>
+                <height>20</height>
+               </size>
+              </property>
+             </spacer>
+            </item>
+            <item>
+             <widget class="QLabel" name="buyItemSelected">
+              <property name="text">
+               <string>Buy item for &lt;int&gt; coins?</string>
+              </property>
+             </widget>
+            </item>
+            <item>
+             <widget class="QPushButton" name="buyPushButton">
+              <property name="text">
+               <string>Indeed!</string>
+              </property>
+             </widget>
+            </item>
+           </layout>
           </item>
           <item>
            <widget class="QTableView" name="npcInvTableView_buySell"/>

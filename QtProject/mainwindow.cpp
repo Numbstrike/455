@@ -13,6 +13,9 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 /* Constructor, using the form Ui */
 {
+    npcName = "Shady Old Man";
+    pName = "Aragorn";
+
     ui->setupUi(this);
 
     this->setWindowTitle("RPG Inventory Manager");
@@ -34,8 +37,9 @@ MainWindow::MainWindow(QWidget *parent) :
 
     //ui->staminaProgBar->setFormat("%p%"); //Grr, text not appearing on Mac. Okay on Windows?
 
-    npcName = "Shady Old Man";
-    pName = "Aragorn";
+    ui->pInvTableView_buySell->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->npcInvTableView_buySell->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->mainInvTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
 
     connectSignalsSlots();
 }
@@ -59,6 +63,7 @@ void MainWindow::startDisplays()
     ui->npcNameLabel_buySell->setText("NPC Name: "+npcName);
 
     setHealthStaminaBars();
+    setCoinsAndWeights();
     updateNpcInvTViewByKind(0);
     updatePInvTViewByKind(0);
 }
@@ -81,6 +86,40 @@ void MainWindow::setHealthStaminaBars()
 
     ui->healthProgBar->setValue(h);
     ui->staminaProgBar->setValue(s);
+}
+
+//-------------------------------------------------------------
+void MainWindow::setCoinsAndWeights()
+{
+    QString pCoins;
+    QString pWeight;
+    QSqlQuery coinQuery;
+    coinQuery.prepare("select coins, totalWeight from PLAYER where name=:pName;");
+    coinQuery.bindValue(":pName", pName);
+    coinQuery.exec();
+
+    while (coinQuery.next())
+    {
+        pCoins = coinQuery.value(0).toString();
+        pWeight = coinQuery.value(1).toString();
+    }
+
+    ui->coinsLabel->setText("Coins: "+pCoins);
+    ui->pCoinsLabel_buySell->setText("Coins: "+pCoins);
+    ui->weightLabel->setText("Weight Carried: "+pWeight);
+    ui->pWeightLabel_buySell->setText("Weight Carried: "+pWeight);
+
+
+    QSqlQuery npcCoinQuery;
+    npcCoinQuery.prepare("select coins, totalWeight from PLAYER where name=:npcName;");
+    npcCoinQuery.bindValue(":npcName", npcName);
+    npcCoinQuery.exec();
+
+    while (npcCoinQuery.next())
+    {
+        ui->npcCoinsLabel_buySell->setText("Coins: "+npcCoinQuery.value(0).toString());
+        ui->npcWeightLabel_buySell->setText("Weight Carried: "+npcCoinQuery.value(1).toString());
+    }
 }
 
 //-------------------------------------------------------------
@@ -131,9 +170,7 @@ void MainWindow::updatePInvTViewByKind(int itemKind)
         getItems.prepare("select * from P_OWNEDMISC;");
     }
 
-    getItems.bindValue(":pName", pName);
     getItems.exec();
-
     mainInvQueryModel->setQuery(getItems);
     mainInvQueryModel->setHeaderData(0, Qt::Horizontal, "Item Name");
     mainInvQueryModel->setHeaderData(1, Qt::Horizontal, "Item Type");
@@ -144,8 +181,23 @@ void MainWindow::updatePInvTViewByKind(int itemKind)
 
     ui->mainInvTableView->setModel(mainInvQueryModel);
     ui->pInvTableView_buySell->setModel(mainInvQueryModel);
-    //ui->pInvTableView_buySell->show();
+    ui->pInvTableView_buySell->show();
     ui->mainInvTableView->show();               //Allows inv tab to be the default one viewed.
+
+
+    QSqlQueryModel *equippedModel = new QSqlQueryModel();
+    QSqlQuery equippedQuery;
+    equippedQuery.prepare("select itemName, itemKind, bodyRegion from EQUIPPED "
+                          "where playerName=:pName; ");
+    equippedQuery.bindValue(":pName", pName);
+    equippedQuery.exec();
+    equippedModel->setQuery(equippedQuery);
+    equippedModel->setHeaderData(0, Qt::Horizontal, "Name");
+    equippedModel->setHeaderData(1, Qt::Horizontal, "Kind");
+    equippedModel->setHeaderData(2, Qt::Horizontal, "Body Region");
+
+    ui->equippedTView->setModel(equippedModel);
+    ui->equippedTView->show();
 }
 
 //-------------------------------------------------------------
