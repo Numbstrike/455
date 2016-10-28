@@ -40,6 +40,12 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->pInvTableView_buySell->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->npcInvTableView_buySell->setSelectionBehavior(QAbstractItemView::SelectRows);
     ui->mainInvTableView->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->equippedTView->setSelectionBehavior(QAbstractItemView::SelectRows);
+
+    //Hide all item action choices initially, when no item is selected!
+    ui->itemActionComboBox->setItemData(1, QSize(0,0), Qt::SizeHintRole);
+    ui->itemActionComboBox->setItemData(2, QSize(0,0), Qt::SizeHintRole);
+    ui->itemActionComboBox->setItemData(3, QSize(0,0), Qt::SizeHintRole);
 
     connectSignalsSlots();
 }
@@ -127,7 +133,10 @@ void MainWindow::connectSignalsSlots()
 {
     connect(ui->itemKindComboBox_pInv, SIGNAL(currentIndexChanged(int)), this, SLOT(updatePInvTViewByKind(int)));
     connect(ui->mainTabWidget, SIGNAL(tabBarClicked(int)), this, SLOT(updatePInvTViewByKind()));
-    //connect(ui->mainInvTableView, SIGNAL(clicked(QModelIndex)), this, SLOT(showTableViewMenu(QModelIndex)));
+    connect(ui->mainInvTableView, SIGNAL(clicked(QModelIndex)), this, SLOT(pInvItemSelected(QModelIndex)));
+    connect(ui->pInvTableView_buySell, SIGNAL(clicked(QModelIndex)), this, SLOT(pInvItemSelected_buySell(QModelIndex)));
+    connect(ui->npcInvTableView_buySell, SIGNAL(clicked(QModelIndex)), this, SLOT(npcInvItemSelected_buySell(QModelIndex)));
+    connect(ui->itemActionButton, SIGNAL(clicked()), this, SLOT(itemActionClicked()));
 }
 
 //-------------------------------------------------------------
@@ -136,7 +145,6 @@ void MainWindow::updatePInvTViewByKind(int itemKind)
 {
     qDebug() << "MainWin::updatePInvTViewByType:  Current pName is" << pName;
     QSqlQuery getItems;
-    QSqlQueryModel *mainInvQueryModel = new QSqlQueryModel();      //QSqlQueryModel for DISPLAYING data, not for editing, unlike QSqlTableModel.
     createPlayerTempTables();
 
     //MAKE SURE TO HAVE SPACES, SO QUERY EXECUTES NORMALLY.
@@ -205,7 +213,6 @@ void MainWindow::updateNpcInvTViewByKind(int itemKind)
 {
     qDebug() << "MainWin::updatePInvTViewByType:  Current npcName is" << npcName;
     QSqlQuery getItems;
-    QSqlQueryModel *npcInvQueryModel = new QSqlQueryModel();      //QSqlQueryModel for DISPLAYING data, not for editing, unlike QSqlTableModel.
     createNpcTempTables();
 
     if (itemKind == 0)
@@ -270,8 +277,123 @@ void MainWindow::createNpcTempTables()
 }
 
 //-------------------------------------------------------------
-//void MainWindow::showTableViewMenu(QModelIndex rowNum)
+void MainWindow::pInvItemSelected(const QModelIndex &i)
+{
+    QModelIndex nameIndex = mainInvQueryModel->index(i.row(), 0, QModelIndex());
+    pSelectedItem = mainInvQueryModel->data(nameIndex).toString();
+    qDebug() << pSelectedItem;
+    ui->pItemSelected_main->setText("Item Selected: "+pSelectedItem);
+
+    QModelIndex kindIndex = mainInvQueryModel->index(i.row(), 1, QModelIndex());
+    QString kind = mainInvQueryModel->data(kindIndex).toString();
+    qDebug() << "Selected item kind: " << kind;
+
+    QSize size = ui->itemActionButton->sizeHint();
+
+  //Item actions are "<Select Action>", drop, equip, or use, indexed in that order.
+    ui->itemActionComboBox->setCurrentIndex(0);         //Default to first value ("<Select Action>" so cannot use last selected action on invalid item.
+
+    //All items can be dropped.
+    ui->itemActionComboBox->setItemData(1, size, Qt::SizeHintRole);
+
+    //Disable or enable equpping an item.
+    if (kind!="weapon" && kind!="armor")
+    { ui->itemActionComboBox->setItemData(2, QSize(0,0), Qt::SizeHintRole); }
+    else
+    { ui->itemActionComboBox->setItemData(2, size, Qt::SizeHintRole); }
+
+    //Disable or enable using an item.
+    if (kind!="usable")
+    { ui->itemActionComboBox->setItemData(3, QSize(0,0), Qt::SizeHintRole); }
+    else
+    { ui->itemActionComboBox->setItemData(3, size, Qt::SizeHintRole); }
+}
+
+//-------------------------------------------------------------
+void MainWindow::pInvItemSelected_buySell(const QModelIndex &i)
+{
+    QModelIndex nameIndex = mainInvQueryModel->index(i.row(), 0, QModelIndex());
+    pSelectedItem = mainInvQueryModel->data(nameIndex).toString();
+    ui->pItemSelected_buySell->setText("Item Selected: "+pSelectedItem);
+
+    QModelIndex priceIndex = mainInvQueryModel->index(i.row(), 5, QModelIndex());
+    QString price = mainInvQueryModel->data(priceIndex).toString();
+    ui->pItemPrice_buySell->setText("Sell item for "+price+" coins?");
+}
+
+//-------------------------------------------------------------
+void MainWindow::npcInvItemSelected_buySell(const QModelIndex &i)
+{
+    QModelIndex nameIndex = npcInvQueryModel->index(i.row(), 0, QModelIndex());
+    npcSelectedItem = npcInvQueryModel->data(nameIndex).toString();
+    ui->npcItemSelected_buySell->setText("Item Selected: "+npcSelectedItem);
+
+    QModelIndex priceIndex = npcInvQueryModel->index(i.row(), 5, QModelIndex());
+    QString price = npcInvQueryModel->data(priceIndex).toString();
+    ui->npcItemPrice_buySell->setText("Buy item for "+price+" coins?");
+}
+
+//-------------------------------------------------------------
+void MainWindow::itemActionClicked()
+{
+    QString action = ui->itemActionComboBox->currentText();
+
+    qDebug() << "MainWin::itemActionClicked()" << action;
+    if (action=="Drop Item")
+    {
+        //dropItem();
+    }
+
+    else if (action=="Equip Item")
+    {
+
+    }
+
+    else if (action=="Use Item")
+    { useItem(); }
+}
+
+//-------------------------------------------------------------
+//void MainWindow::dropItem()
 //{
-//    //QMenu *menu = new QMenu(ui->mainInvTableView);
-//    //QMenu->show();
+//    QSqlQuery deleteItem;
+//    deleteItem.prepare("call deleteOrUpdateInOWNED(:pName, :itemName, :kind, 1);");
+//    deleteItem.bindValue(":itemName", pSelectedItem);
+//    deleteItem.bindValue(":pName", pName);
+//    deleteItem.exec();
+
+//    updatePInvTViewByKind(ui->itemKindComboBox_pInv->currentIndex());
 //}
+
+//-------------------------------------------------------------
+void MainWindow::useItem()
+{
+    QString statType;
+    QString modifier;
+
+    QSqlQuery itemInfo;
+    itemInfo.prepare("select affects, modifier from USABLE where name=:itemName;");
+    itemInfo.bindValue(":itemName", pSelectedItem);
+    itemInfo.exec();
+    while (itemInfo.next())
+    {
+        statType = itemInfo.value(0).toString();
+        modifier = itemInfo.value(1).toString();
+    }
+
+    QSqlQuery useQuery;
+    useQuery.prepare("call updateHealthStamina(:pName, :statType, :modifier);");
+    useQuery.bindValue(":pName", pName);
+    useQuery.bindValue(":statType",statType);
+    useQuery.bindValue(":modifier", modifier);
+    useQuery.exec();
+
+    QSqlQuery deleteItem;
+    deleteItem.prepare("call deleteOrUpdateInOWNED(:pName, :itemName, 'usable', 1);");        //TODO: Pay attention to quantity in GUI. Might be fine to use ONE item at a time, but might want to have a qty option in other cases.
+    deleteItem.bindValue(":itemName", pSelectedItem);
+    deleteItem.bindValue(":pName", pName);
+    deleteItem.exec();
+
+    setHealthStaminaBars();
+    updatePInvTViewByKind(ui->itemKindComboBox_pInv->currentIndex());
+}

@@ -257,9 +257,9 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_5">
             <item>
-             <widget class="QLabel" name="label_2">
+             <widget class="QLabel" name="pItemSelected_main">
               <property name="text">
-               <string>Item Selected: &lt;itemname&gt;</string>
+               <string>Item Selected: </string>
               </property>
              </widget>
             </item>
@@ -273,7 +273,15 @@
                </widget>
               </item>
               <item>
-               <widget class="QComboBox" name="comboBox">
+               <widget class="QComboBox" name="itemActionComboBox">
+                <property name="sizeAdjustPolicy">
+                 <enum>QComboBox::AdjustToMinimumContentsLength</enum>
+                </property>
+                <item>
+                 <property name="text">
+                  <string>&lt;Select Action&gt;</string>
+                 </property>
+                </item>
                 <item>
                  <property name="text">
                   <string>Drop Item</string>
@@ -281,17 +289,30 @@
                 </item>
                 <item>
                  <property name="text">
-                  <string>Use Item</string>
+                  <string>Equip Item</string>
                  </property>
                 </item>
                 <item>
                  <property name="text">
-                  <string>Equip Item</string>
+                  <string>Use Item</string>
                  </property>
                 </item>
                </widget>
               </item>
              </layout>
+            </item>
+            <item>
+             <widget class="QPushButton" name="itemActionButton">
+              <property name="sizePolicy">
+               <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                <horstretch>0</horstretch>
+                <verstretch>0</verstretch>
+               </sizepolicy>
+              </property>
+              <property name="text">
+               <string>Go</string>
+              </property>
+             </widget>
             </item>
            </layout>
           </item>
@@ -347,9 +368,9 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
-             <widget class="QLabel" name="sellAmtLabel">
+             <widget class="QLabel" name="pItemSelected_buySell">
               <property name="text">
-               <string>Item Selected: &lt;itemname&gt;</string>
+               <string>Item Selected: </string>
               </property>
              </widget>
             </item>
@@ -367,14 +388,14 @@
              </spacer>
             </item>
             <item>
-             <widget class="QLabel" name="sellItemSelected">
+             <widget class="QLabel" name="pItemPrice_buySell">
               <property name="text">
                <string>Sell item for &lt;int&gt; coins?</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="sellPushButton">
+             <widget class="QPushButton" name="pItemButton_buySell">
               <property name="text">
                <string>Indeed!</string>
               </property>
@@ -427,9 +448,9 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_4">
             <item>
-             <widget class="QLabel" name="buyAmtLabel">
+             <widget class="QLabel" name="npcItemSelected_buySell">
               <property name="text">
-               <string>Item Selected: &lt;itemname&gt;</string>
+               <string>Item Selected: </string>
               </property>
              </widget>
             </item>
@@ -447,14 +468,14 @@
              </spacer>
             </item>
             <item>
-             <widget class="QLabel" name="buyItemSelected">
+             <widget class="QLabel" name="npcItemPrice_buySell">
               <property name="text">
                <string>Buy item for &lt;int&gt; coins?</string>
               </property>
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="buyPushButton">
+             <widget class="QPushButton" name="npcItemButton_buySell">
               <property name="text">
                <string>Indeed!</string>
               </property>
