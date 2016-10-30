@@ -24,12 +24,18 @@ class MainWindow : public QMainWindow
         QString accentColor;
         Ui::MainWindow *ui;
         QSqlDatabase db;       //Addresses (pointers) are never null, so don't try to initialize them to NULL.
+
         QString pName;
         QString npcName;
         QSqlQueryModel *mainInvQueryModel = new QSqlQueryModel();      //QSqlQueryModel for DISPLAYING data, not for editing, unlike QSqlTableModel.
         QSqlQueryModel *npcInvQueryModel = new QSqlQueryModel();
         QString pSelectedItem;
         QString npcSelectedItem;
+        QString pSelectedItemKind;
+        QString npcSelectedItemKind;
+        QString pSelectedItemValue;
+        QString npcSelectedItemValue;
+
         void setHealthStaminaBars();
         void setCoinsAndWeights();
         void connectSignalsSlots();
@@ -42,6 +48,8 @@ class MainWindow : public QMainWindow
         Q_SLOT void pInvItemSelected_buySell(const QModelIndex &i);
         Q_SLOT void npcInvItemSelected_buySell(const QModelIndex &i);
         Q_SLOT void itemActionClicked();
+        Q_SLOT void playerSelling();
+        Q_SLOT void playerBuying();
 };
 
 #endif // MAINWINDOW_H

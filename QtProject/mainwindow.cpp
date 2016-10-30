@@ -97,6 +97,34 @@ void MainWindow::setHealthStaminaBars()
 //-------------------------------------------------------------
 void MainWindow::setCoinsAndWeights()
 {
+    //Query to calculate total weight through prepared statements.
+    //(Initially had done soley through triggers, which is fine when
+    //  inserting into or deleting from the OWNED table, but an issue
+    //  upon updating is distinguishing between increasing or decreasing
+    //  a value to the total weight carried.)
+
+    QSqlQuery updateWeight;
+    updateWeight.prepare("update PLAYER "
+                         "set totalWeight = "
+                         "(select sum(weight*quantity) "
+                         "from OWNED join ITEM on OWNED.itemName=ITEM.name "
+                         "where playerName=:pName) "
+                         "where name=:pName;");
+    updateWeight.bindValue(":pName", pName);
+    updateWeight.exec();
+
+    QSqlQuery npcWeight;
+    npcWeight.prepare("update PLAYER "
+                      "set totalWeight = "
+                      "(select sum(weight*quantity) "
+                      "from OWNED join ITEM on OWNED.itemName=ITEM.name "
+                      "where playerName=:npcName) "
+                      "where name=:npcName;");
+    npcWeight.bindValue(":npcName", npcName);
+    npcWeight.exec();
+
+    //-------
+
     QString pCoins;
     QString pWeight;
     QSqlQuery coinQuery;
@@ -125,6 +153,8 @@ void MainWindow::setCoinsAndWeights()
     {
         ui->npcCoinsLabel_buySell->setText("Coins: "+npcCoinQuery.value(0).toString());
         ui->npcWeightLabel_buySell->setText("Weight Carried: "+npcCoinQuery.value(1).toString());
+        qDebug() << "p weight" << pWeight;
+        qDebug() << "npc weight" << npcCoinQuery.value(1).toString();
     }
 }
 
@@ -137,13 +167,14 @@ void MainWindow::connectSignalsSlots()
     connect(ui->pInvTableView_buySell, SIGNAL(clicked(QModelIndex)), this, SLOT(pInvItemSelected_buySell(QModelIndex)));
     connect(ui->npcInvTableView_buySell, SIGNAL(clicked(QModelIndex)), this, SLOT(npcInvItemSelected_buySell(QModelIndex)));
     connect(ui->itemActionButton, SIGNAL(clicked()), this, SLOT(itemActionClicked()));
+    connect(ui->pItemButton_buySell, SIGNAL(clicked()), this, SLOT(playerSelling()));
+    connect(ui->npcItemButton_buySell, SIGNAL(clicked()), this, SLOT(playerBuying()));
 }
 
 //-------------------------------------------------------------
 void MainWindow::updatePInvTViewByKind(int itemKind)
 /* Finding player inventory by item type.  Each type might have a slightly different displayed table (attribute-wise). */
 {
-    qDebug() << "MainWin::updatePInvTViewByType:  Current pName is" << pName;
     QSqlQuery getItems;
     createPlayerTempTables();
 
@@ -211,7 +242,6 @@ void MainWindow::updatePInvTViewByKind(int itemKind)
 //-------------------------------------------------------------
 void MainWindow::updateNpcInvTViewByKind(int itemKind)
 {
-    qDebug() << "MainWin::updatePInvTViewByType:  Current npcName is" << npcName;
     QSqlQuery getItems;
     createNpcTempTables();
 
@@ -316,9 +346,12 @@ void MainWindow::pInvItemSelected_buySell(const QModelIndex &i)
     pSelectedItem = mainInvQueryModel->data(nameIndex).toString();
     ui->pItemSelected_buySell->setText("Item Selected: "+pSelectedItem);
 
+    QModelIndex kindIndex = mainInvQueryModel->index(i.row(), 1, QModelIndex());
+    pSelectedItemKind = mainInvQueryModel->data(kindIndex).toString();              //To use when buying/selling.
+
     QModelIndex priceIndex = mainInvQueryModel->index(i.row(), 5, QModelIndex());
-    QString price = mainInvQueryModel->data(priceIndex).toString();
-    ui->pItemPrice_buySell->setText("Sell item for "+price+" coins?");
+    pSelectedItemValue = mainInvQueryModel->data(priceIndex).toString();
+    ui->pItemPrice_buySell->setText("Sell item for "+pSelectedItemValue+" coins?");
 }
 
 //-------------------------------------------------------------
@@ -328,9 +361,12 @@ void MainWindow::npcInvItemSelected_buySell(const QModelIndex &i)
     npcSelectedItem = npcInvQueryModel->data(nameIndex).toString();
     ui->npcItemSelected_buySell->setText("Item Selected: "+npcSelectedItem);
 
+    QModelIndex kindIndex = mainInvQueryModel->index(i.row(), 1, QModelIndex());
+    npcSelectedItemKind = mainInvQueryModel->data(kindIndex).toString();
+
     QModelIndex priceIndex = npcInvQueryModel->index(i.row(), 5, QModelIndex());
-    QString price = npcInvQueryModel->data(priceIndex).toString();
-    ui->npcItemPrice_buySell->setText("Buy item for "+price+" coins?");
+    npcSelectedItemValue = npcInvQueryModel->data(priceIndex).toString();
+    ui->npcItemPrice_buySell->setText("Buy item for "+npcSelectedItemValue+" coins?");
 }
 
 //-------------------------------------------------------------
@@ -373,6 +409,7 @@ void MainWindow::useItem()
 
     QSqlQuery itemInfo;
     itemInfo.prepare("select affects, modifier from USABLE where name=:itemName;");
+
     itemInfo.bindValue(":itemName", pSelectedItem);
     itemInfo.exec();
     while (itemInfo.next())
@@ -396,4 +433,45 @@ void MainWindow::useItem()
 
     setHealthStaminaBars();
     updatePInvTViewByKind(ui->itemKindComboBox_pInv->currentIndex());
+}
+
+
+//-------------------------------------------------------------
+void MainWindow::playerSelling()
+{
+    QSqlQuery q;
+    q.prepare("call buySellItem(:iName, :iKind, :value, :qty, :seller, :buyer);");
+    q.bindValue(":iName", pSelectedItem);
+    q.bindValue(":iKind", pSelectedItemKind);
+    q.bindValue(":value", pSelectedItemValue);
+    q.bindValue(":qty", 1);                 //TODO: Make user-choice instead of 1
+    q.bindValue(":seller", pName);
+    q.bindValue(":buyer", npcName);
+    q.exec();
+
+    updatePInvTViewByKind(0);
+    updateNpcInvTViewByKind(0);
+
+    setCoinsAndWeights();
+}
+
+
+
+//-------------------------------------------------------------
+void MainWindow::playerBuying()
+{
+    QSqlQuery q;
+    q.prepare("call buySellItem(:iName, :iKind, :value, :qty, :seller, :buyer);");      //Ultimately changes OWNED table.
+    q.bindValue(":iName", npcSelectedItem);
+    q.bindValue(":iKind", npcSelectedItemKind);
+    q.bindValue(":value", npcSelectedItemValue);
+    q.bindValue(":qty", 1);
+    q.bindValue(":seller", npcName);
+    q.bindValue(":buyer", pName);
+    q.exec();
+
+    updatePInvTViewByKind(0);                                                           //Update temp tables based on OWNED table.
+    updateNpcInvTViewByKind(0);
+
+    setCoinsAndWeights();
 }

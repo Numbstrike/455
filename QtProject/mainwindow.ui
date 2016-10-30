@@ -490,6 +490,11 @@
         </item>
        </layout>
       </widget>
+      <widget class="QWidget" name="itemInfoTab">
+       <attribute name="title">
+        <string>General Item Info</string>
+       </attribute>
+      </widget>
      </widget>
     </item>
    </layout>
