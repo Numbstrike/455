@@ -1,3 +1,6 @@
+//RPG Inventory Manager
+//Jessica Baron     UNCW CSC 455     Fall 2016
+
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QWidget>
@@ -5,7 +8,7 @@
 #include <QSql>
 #include <QSqlQuery>
 #include <QSqlQueryModel>
-#include <QMenu>
+#include <QMessageBox>
 
 //-------------------------------------------------------------
 MainWindow::MainWindow(QWidget *parent) :
@@ -315,8 +318,8 @@ void MainWindow::pInvItemSelected(const QModelIndex &i)
     ui->pItemSelected_main->setText("Item Selected: "+pSelectedItem);
 
     QModelIndex kindIndex = mainInvQueryModel->index(i.row(), 1, QModelIndex());
-    QString kind = mainInvQueryModel->data(kindIndex).toString();
-    qDebug() << "Selected item kind: " << kind;
+    pSelectedItemKind = mainInvQueryModel->data(kindIndex).toString();
+    qDebug() << "Selected item kind: " << pSelectedItemKind;
 
     QSize size = ui->itemActionButton->sizeHint();
 
@@ -327,13 +330,13 @@ void MainWindow::pInvItemSelected(const QModelIndex &i)
     ui->itemActionComboBox->setItemData(1, size, Qt::SizeHintRole);
 
     //Disable or enable equpping an item.
-    if (kind!="weapon" && kind!="armor")
+    if (pSelectedItemKind!="weapon" && pSelectedItemKind!="armor")
     { ui->itemActionComboBox->setItemData(2, QSize(0,0), Qt::SizeHintRole); }
     else
     { ui->itemActionComboBox->setItemData(2, size, Qt::SizeHintRole); }
 
     //Disable or enable using an item.
-    if (kind!="usable")
+    if (pSelectedItemKind!="usable")
     { ui->itemActionComboBox->setItemData(3, QSize(0,0), Qt::SizeHintRole); }
     else
     { ui->itemActionComboBox->setItemData(3, size, Qt::SizeHintRole); }
@@ -376,63 +379,94 @@ void MainWindow::itemActionClicked()
 
     qDebug() << "MainWin::itemActionClicked()" << action;
     if (action=="Drop Item")
-    {
-        //dropItem();
-    }
+    { dropItem(); }
 
     else if (action=="Equip Item")
-    {
-
-    }
+    { equipItem(); }
 
     else if (action=="Use Item")
     { useItem(); }
 }
 
-//-------------------------------------------------------------
-//void MainWindow::dropItem()
-//{
-//    QSqlQuery deleteItem;
-//    deleteItem.prepare("call deleteOrUpdateInOWNED(:pName, :itemName, :kind, 1);");
-//    deleteItem.bindValue(":itemName", pSelectedItem);
-//    deleteItem.bindValue(":pName", pName);
-//    deleteItem.exec();
 
-//    updatePInvTViewByKind(ui->itemKindComboBox_pInv->currentIndex());
-//}
+//-------------------------------------------------------------
+void MainWindow::equipItem()
+{
+    if (pSelectedItemKind == "weapon" || pSelectedItemKind == "armor")
+    {
+        //name, kind, bodyregion
+        QSqlQuery q;
+        q.prepare("call equipItem(:pName, :iName, :iKind);");
+        q.bindValue(":pName", pName);
+        q.bindValue(":iName", pSelectedItem);
+        q.bindValue(":iKind", pSelectedItemKind);
+        q.exec();
+
+        updatePInvTViewByKind(0);           //Handles displaying equipped TableView
+    }
+
+    else
+    {
+        QMessageBox::warning(this, "Wrong Item Kind Selected", "You can only EQUIP weapons "
+                           "or armor! Item kind '"+pSelectedItemKind+"' selected.");
+    }
+}
+
+
+//-------------------------------------------------------------
+void MainWindow::dropItem()
+{
+    QSqlQuery drop;
+    drop.prepare("call deleteOrUpdateInOWNED(:pName, :itemName, :kind, 1);");
+    drop.bindValue(":itemName", pSelectedItem);
+    drop.bindValue(":pName", pName);
+    drop.bindValue(":kind", pSelectedItemKind);
+    drop.exec();
+
+    setCoinsAndWeights();           //Update weight counts.
+    updatePInvTViewByKind(ui->itemKindComboBox_pInv->currentIndex());
+}
 
 //-------------------------------------------------------------
 void MainWindow::useItem()
 {
-    QString statType;
-    QString modifier;
-
-    QSqlQuery itemInfo;
-    itemInfo.prepare("select affects, modifier from USABLE where name=:itemName;");
-
-    itemInfo.bindValue(":itemName", pSelectedItem);
-    itemInfo.exec();
-    while (itemInfo.next())
+    if (pSelectedItemKind == "usable")
     {
-        statType = itemInfo.value(0).toString();
-        modifier = itemInfo.value(1).toString();
+        QString statType;
+        QString modifier;
+
+        QSqlQuery itemInfo;
+        itemInfo.prepare("select affects, modifier from USABLE where name=:itemName;");
+
+        itemInfo.bindValue(":itemName", pSelectedItem);
+        itemInfo.exec();
+        while (itemInfo.next())
+        {
+            statType = itemInfo.value(0).toString();
+            modifier = itemInfo.value(1).toString();
+        }
+
+        QSqlQuery useQuery;
+        useQuery.prepare("call updateHealthStamina(:pName, :statType, :modifier);");
+        useQuery.bindValue(":pName", pName);
+        useQuery.bindValue(":statType",statType);
+        useQuery.bindValue(":modifier", modifier);
+        useQuery.exec();
+
+        QSqlQuery deleteItem;
+        deleteItem.prepare("call deleteOrUpdateInOWNED(:pName, :itemName, 'usable', 1);");        //TODO: Pay attention to quantity in GUI. Might be fine to use ONE item at a time, but might want to have a qty option in other cases.
+        deleteItem.bindValue(":itemName", pSelectedItem);
+        deleteItem.bindValue(":pName", pName);
+        deleteItem.exec();
+
+        setHealthStaminaBars();
+        updatePInvTViewByKind(ui->itemKindComboBox_pInv->currentIndex());
+   }
+    else
+    {
+        QMessageBox::warning(this, "Wrong Item Kind Selected", "You can only USE a "
+                           "usable item! Item kind '"+pSelectedItemKind+"' selected.");
     }
-
-    QSqlQuery useQuery;
-    useQuery.prepare("call updateHealthStamina(:pName, :statType, :modifier);");
-    useQuery.bindValue(":pName", pName);
-    useQuery.bindValue(":statType",statType);
-    useQuery.bindValue(":modifier", modifier);
-    useQuery.exec();
-
-    QSqlQuery deleteItem;
-    deleteItem.prepare("call deleteOrUpdateInOWNED(:pName, :itemName, 'usable', 1);");        //TODO: Pay attention to quantity in GUI. Might be fine to use ONE item at a time, but might want to have a qty option in other cases.
-    deleteItem.bindValue(":itemName", pSelectedItem);
-    deleteItem.bindValue(":pName", pName);
-    deleteItem.exec();
-
-    setHealthStaminaBars();
-    updatePInvTViewByKind(ui->itemKindComboBox_pInv->currentIndex());
 }
 
 
@@ -454,7 +488,6 @@ void MainWindow::playerSelling()
 
     setCoinsAndWeights();
 }
-
 
 
 //-------------------------------------------------------------

@@ -1,3 +1,6 @@
+//RPG Inventory Manager
+//Jessica Baron     UNCW CSC 455     Fall 2016
+
 #ifndef LOGINDIALOG_H
 #define LOGINDIALOG_H
 

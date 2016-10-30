@@ -1,3 +1,6 @@
+//RPG Inventory Manager
+//Jessica Baron     UNCW CSC 455     Fall 2016
+
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
@@ -42,6 +45,8 @@ class MainWindow : public QMainWindow
         void createPlayerTempTables();
         void createNpcTempTables();
         void useItem();
+        void dropItem();
+        void equipItem();
         Q_SLOT void updatePInvTViewByKind(int itemKind=0);
         Q_SLOT void updateNpcInvTViewByKind(int itemKind=0);
         Q_SLOT void pInvItemSelected(const QModelIndex &i);
