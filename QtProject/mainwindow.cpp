@@ -95,6 +95,9 @@ void MainWindow::setHealthStaminaBars()
 
     ui->healthProgBar->setValue(h);
     ui->staminaProgBar->setValue(s);
+
+    ui->healthPercent->setText(QString::number(h)+"%");
+    ui->staminaPercent->setText(QString::number(s)+"%");
 }
 
 //-------------------------------------------------------------
@@ -172,6 +175,8 @@ void MainWindow::connectSignalsSlots()
     connect(ui->itemActionButton, SIGNAL(clicked()), this, SLOT(itemActionClicked()));
     connect(ui->pItemButton_buySell, SIGNAL(clicked()), this, SLOT(playerSelling()));
     connect(ui->npcItemButton_buySell, SIGNAL(clicked()), this, SLOT(playerBuying()));
+    connect(ui->equippedTView, SIGNAL(clicked(QModelIndex)), this, SLOT(equippedItemSelected(QModelIndex)));
+    connect(ui->unequipBtn, SIGNAL(clicked()), this, SLOT(unequipItem()));
 }
 
 //-------------------------------------------------------------
@@ -226,8 +231,6 @@ void MainWindow::updatePInvTViewByKind(int itemKind)
     ui->pInvTableView_buySell->show();
     ui->mainInvTableView->show();               //Allows inv tab to be the default one viewed.
 
-
-    QSqlQueryModel *equippedModel = new QSqlQueryModel();
     QSqlQuery equippedQuery;
     equippedQuery.prepare("select itemName, itemKind, bodyRegion from EQUIPPED "
                           "where playerName=:pName; ");
@@ -370,6 +373,26 @@ void MainWindow::npcInvItemSelected_buySell(const QModelIndex &i)
     QModelIndex priceIndex = npcInvQueryModel->index(i.row(), 5, QModelIndex());
     npcSelectedItemValue = npcInvQueryModel->data(priceIndex).toString();
     ui->npcItemPrice_buySell->setText("Buy item for "+npcSelectedItemValue+" coins?");
+}
+
+//-------------------------------------------------------------
+void MainWindow::equippedItemSelected(const QModelIndex &i)
+{
+    QModelIndex nameIndex = equippedModel->index(i.row(), 0, QModelIndex());
+    equippedName = equippedModel->data(nameIndex).toString();
+    ui->itemSelected_equipped->setText("Item Selected: "+equippedName);
+}
+
+//-------------------------------------------------------------
+void MainWindow::unequipItem()
+{
+    QSqlQuery unequip;
+    unequip.prepare("delete from EQUIPPED where playerName=:pName and itemName=:equippedName;");
+    unequip.bindValue(":pName", pName);
+    unequip.bindValue(":equippedName", equippedName);
+    unequip.exec();
+
+    updatePInvTViewByKind(0);
 }
 
 //-------------------------------------------------------------

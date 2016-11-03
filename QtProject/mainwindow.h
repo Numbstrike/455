@@ -32,12 +32,14 @@ class MainWindow : public QMainWindow
         QString npcName;
         QSqlQueryModel *mainInvQueryModel = new QSqlQueryModel();      //QSqlQueryModel for DISPLAYING data, not for editing, unlike QSqlTableModel.
         QSqlQueryModel *npcInvQueryModel = new QSqlQueryModel();
+        QSqlQueryModel *equippedModel = new QSqlQueryModel();
         QString pSelectedItem;
         QString npcSelectedItem;
         QString pSelectedItemKind;
         QString npcSelectedItemKind;
         QString pSelectedItemValue;
         QString npcSelectedItemValue;
+        QString equippedName;
 
         void setHealthStaminaBars();
         void setCoinsAndWeights();
@@ -52,9 +54,11 @@ class MainWindow : public QMainWindow
         Q_SLOT void pInvItemSelected(const QModelIndex &i);
         Q_SLOT void pInvItemSelected_buySell(const QModelIndex &i);
         Q_SLOT void npcInvItemSelected_buySell(const QModelIndex &i);
+        Q_SLOT void equippedItemSelected(const QModelIndex &i);
         Q_SLOT void itemActionClicked();
         Q_SLOT void playerSelling();
         Q_SLOT void playerBuying();
+        Q_SLOT void unequipItem();
 };
 
 #endif // MAINWINDOW_H
