@@ -18,7 +18,7 @@
     <item>
      <widget class="QTabWidget" name="mainTabWidget">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="inventoryTab">
        <attribute name="title">
@@ -430,7 +430,7 @@
             <item>
              <widget class="QLabel" name="pItemPrice_buySell">
               <property name="text">
-               <string>Sell item for &lt;int&gt; coins?</string>
+               <string>Sell item for __ coins?</string>
               </property>
              </widget>
             </item>
@@ -510,7 +510,7 @@
             <item>
              <widget class="QLabel" name="npcItemPrice_buySell">
               <property name="text">
-               <string>Buy item for &lt;int&gt; coins?</string>
+               <string>Buy item for __ coins?</string>
               </property>
              </widget>
             </item>
@@ -529,11 +529,6 @@
          </layout>
         </item>
        </layout>
-      </widget>
-      <widget class="QWidget" name="itemInfoTab">
-       <attribute name="title">
-        <string>General Item Info</string>
-       </attribute>
       </widget>
      </widget>
     </item>
